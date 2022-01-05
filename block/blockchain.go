@@ -42,6 +42,7 @@ func (b *Block) Print() {
 	}
 }
 
+// Hash https://xn--go-hh0g6u.com/pkg/crypto/md5/ 参考
 func (b *Block) Hash() [32]byte {
 	m, _ := json.Marshal(b)
 	return sha256.Sum256([]byte(m))
