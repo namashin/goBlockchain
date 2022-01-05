@@ -34,14 +34,19 @@ func (bcs *BlockchainServer) GetBlockchain() *block.Blockchain {
 	return bc
 }
 
-func Hello(w http.ResponseWriter, req *http.Request) {
-	_, err := io.WriteString(w, "hello")
-	if err != nil {
-		return
+func (bcs *BlockchainServer) GetChain(w http.ResponseWriter, req *http.Request) {
+	switch req.Method {
+	case http.MethodGet:
+		w.Header().Add("Content-Type", "application/json")
+		bc := bcs.GetBlockchain()
+		m, _ := bc.MarshalJSON()
+		io.WriteString(w, string(m[:]))
+	default:
+		log.Println("ERROR: Invalid HTTP Method")
 	}
 }
 
 func (bcs *BlockchainServer) Run() {
-	http.HandleFunc("/", Hello)
+	http.HandleFunc("/", bcs.GetChain)
 	log.Fatal(http.ListenAndServe("0.0.0.0:"+strconv.Itoa(int(bcs.port)), nil))
 }
