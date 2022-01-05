@@ -18,7 +18,8 @@ type Wallet struct {
 	blockchainAddress string
 }
 
-// NewWallet ここの処理はブロックチェーンウォレットを作成する時の処理があるっぽい。
+// NewWallet ここの処理はブロックチェーンウォレットを作成する時のアルゴリズムがあるっぽい。
+// 論文よんでもわからん
 func NewWallet() *Wallet {
 	w := new(Wallet)
 	privateKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
