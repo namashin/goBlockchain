@@ -5,9 +5,11 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"github.com/btcsuite/btcutil/base58"
 	"golang.org/x/crypto/ripemd160"
+	"math/big"
 )
 
 type Wallet struct {
@@ -16,6 +18,7 @@ type Wallet struct {
 	blockchainAddress string
 }
 
+// NewWallet ここの処理はブロックチェーンウォレットを作成する時の処理があるっぽい。
 func NewWallet() *Wallet {
 	w := new(Wallet)
 	privateKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -72,4 +75,51 @@ func (w *Wallet) PublicKeyStr() string {
 
 func (w *Wallet) BlockchainAddress() string {
 	return w.blockchainAddress
+}
+
+type Transaction struct {
+	senderPrivateKey           *ecdsa.PrivateKey
+	senderPublicKey            *ecdsa.PublicKey
+	senderBlockchainAddress    string
+	recipientBlockchainAddress string
+	value                      float32
+}
+
+func NewTransaction(privateKey *ecdsa.PrivateKey,
+	publicKey *ecdsa.PublicKey, sender string, recipient string, value float32) *Transaction {
+	return &Transaction{
+		senderPrivateKey:           privateKey,
+		senderPublicKey:            publicKey,
+		senderBlockchainAddress:    sender,
+		recipientBlockchainAddress: recipient,
+		value:                      value,
+	}
+}
+
+func (t *Transaction) GenerateSignature() *Signature {
+	m, _ := json.Marshal(t)
+	h := sha256.Sum256([]byte(m))
+	r, s, _ := ecdsa.Sign(rand.Reader, t.senderPrivateKey, h[:])
+	return &Signature{r, s}
+}
+
+func (t *Transaction) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Sender    string  `json:"sender_blockchain_address"`
+		Recipient string  `json:"recipient_blockchain_address"`
+		Value     float32 `json:"value"`
+	}{
+		Sender:    t.senderBlockchainAddress,
+		Recipient: t.recipientBlockchainAddress,
+		Value:     t.value,
+	})
+}
+
+type Signature struct {
+	R *big.Int
+	S *big.Int
+}
+
+func (s *Signature) String() string {
+	return fmt.Sprintf("%x%x", s.R, s.S)
 }
