@@ -16,4 +16,6 @@ func main() {
 
 	fmt.Println(*port)
 	// 5000
+	app := NewBlockchainServer(uint16(*port))
+	app.Run()
 }
