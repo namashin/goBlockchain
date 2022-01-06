@@ -1,8 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
+	"goblockchain/block"
 	"goblockchain/utils"
 	"goblockchain/wallet"
 	"html/template"
@@ -49,6 +50,8 @@ func (ws *WalletServer) Wallet(w http.ResponseWriter, req *http.Request) {
 		myWallet := wallet.NewWallet()
 		m, _ := myWallet.MarshalJSON()
 		io.WriteString(w, string(m[:]))
+	case http.MethodGet:
+		io.WriteString(w, "/walletのURLはPOST専用だよ～,GETしないで")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		log.Println("ERROR: Invalid HTTp Method")
@@ -72,9 +75,44 @@ func (ws *WalletServer) CreateTransaction(w http.ResponseWriter, req *http.Reque
 			return
 		}
 
-		fmt.Println(len(*t.SenderPrivateKey))
-		fmt.Println(len(*t.SenderPublicKey))
+		publicKey := utils.PublicKeyFromString(*t.SenderPublicKey)
+		privateKey := utils.PrivateKeyFromString(*t.SenderPrivateKey, publicKey)
+		value, err := strconv.ParseFloat(*t.Value, 32)
+		if err != nil {
+			log.Println("ERROR Parse error")
+			io.WriteString(w, string(utils.JsonStatus("fail")))
+			return
+		}
+		value32 := float32(value)
+		//fmt.Println(publicKey)
+		//fmt.Println(privateKey)
+		//fmt.Printf("%v", value32)
+		w.Header().Add("Content-Type", "application/json")
 
+		transaction := wallet.NewTransaction(privateKey, publicKey, *t.SenderBlockchainAddress,
+			*t.RecipientBlockchainAddress, value32)
+		signature := transaction.GenerateSignature()
+		signatureStr := signature.String()
+
+		bt := &block.TransactionRequest{
+			t.SenderBlockchainAddress,
+			t.RecipientBlockchainAddress,
+			t.SenderPublicKey,
+			t.Value,
+			&signatureStr,
+		}
+		m, _ := json.Marshal(bt)
+		buf := bytes.NewBuffer(m)
+
+		resp, _ := http.Post(ws.gateway+"/transactions", "application/json", buf)
+		if resp.StatusCode == 201 {
+			io.WriteString(w, string(utils.JsonStatus("success")))
+			return
+		}
+		io.WriteString(w, string(utils.JsonStatus("fail")))
+
+	case http.MethodGet:
+		io.WriteString(w, "/transactionのURLはPOST専用だよ～、GETしないで")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		log.Println("ERROR: Invalid HTTP Method")

@@ -20,6 +20,7 @@ type Wallet struct {
 
 // NewWallet ここの処理はブロックチェーンウォレットを作成する時のアルゴリズムがあるっぽい。
 // 論文よんでもわからん
+// 下記１～９の手順で実装するらしい
 func NewWallet() *Wallet {
 	w := new(Wallet)
 	privateKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
