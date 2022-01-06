@@ -9,8 +9,6 @@ import (
 	"strconv"
 )
 
-var cache map[string]*block.Blockchain = make(map[string]*block.Blockchain)
-
 type BlockchainServer struct {
 	port uint16
 }
@@ -22,6 +20,8 @@ func NewBlockchainServer(port uint16) *BlockchainServer {
 func (bcs *BlockchainServer) Port() uint16 {
 	return bcs.port
 }
+
+var cache map[string]*block.Blockchain = make(map[string]*block.Blockchain)
 
 // GetBlockchain cacheに入っていればそのまま返す、なければ作る
 func (bcs *BlockchainServer) GetBlockchain() *block.Blockchain {
@@ -42,7 +42,7 @@ func (bcs *BlockchainServer) GetChain(w http.ResponseWriter, req *http.Request) 
 		m, _ := bc.MarshalJSON()
 		io.WriteString(w, string(m[:]))
 	default:
-		log.Println("ERROR: Invalid HTTP Method")
+		log.Println("ERROR: Invalid HTTP Method in GetChainメソッド")
 	}
 }
 
