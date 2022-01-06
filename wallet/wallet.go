@@ -18,10 +18,8 @@ type Wallet struct {
 	blockchainAddress string
 }
 
-// NewWallet ここの処理はブロックチェーンウォレットを作成する時のアルゴリズムがあるっぽい。
-// 論文よんでもわからん
-// 下記１～９の手順で実装するらしい
 func NewWallet() *Wallet {
+	// 1. Creating ECDSA private key (32 bytes) public key (64 bytes)
 	w := new(Wallet)
 	privateKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	w.privateKey = privateKey
@@ -72,7 +70,7 @@ func (w *Wallet) PublicKey() *ecdsa.PublicKey {
 }
 
 func (w *Wallet) PublicKeyStr() string {
-	return fmt.Sprintf("%x%x", w.publicKey.X.Bytes(), w.publicKey.Y.Bytes())
+	return fmt.Sprintf("%064x%064x", w.publicKey.X.Bytes(), w.publicKey.Y.Bytes())
 }
 
 func (w *Wallet) BlockchainAddress() string {
@@ -99,15 +97,9 @@ type Transaction struct {
 	value                      float32
 }
 
-func NewTransaction(privateKey *ecdsa.PrivateKey,
-	publicKey *ecdsa.PublicKey, sender string, recipient string, value float32) *Transaction {
-	return &Transaction{
-		senderPrivateKey:           privateKey,
-		senderPublicKey:            publicKey,
-		senderBlockchainAddress:    sender,
-		recipientBlockchainAddress: recipient,
-		value:                      value,
-	}
+func NewTransaction(privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey,
+	sender string, recipient string, value float32) *Transaction {
+	return &Transaction{privateKey, publicKey, sender, recipient, value}
 }
 
 func (t *Transaction) GenerateSignature() *utils.Signature {
@@ -137,7 +129,7 @@ type TransactionRequest struct {
 	Value                      *string `json:"value"`
 }
 
-func (tr *TransactionRequest) ValidDate() bool {
+func (tr *TransactionRequest) Validate() bool {
 	if tr.SenderPrivateKey == nil ||
 		tr.SenderBlockchainAddress == nil ||
 		tr.RecipientBlockchainAddress == nil ||
