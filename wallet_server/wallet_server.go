@@ -14,8 +14,6 @@ import (
 	"strconv"
 )
 
-const tempDir = "wallet_server/templates"
-
 type WalletServer struct {
 	port    uint16
 	gateway string
@@ -36,7 +34,7 @@ func (ws *WalletServer) Gateway() string {
 func (ws *WalletServer) Index(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodGet:
-		t, _ := template.ParseFiles(path.Join(tempDir, "index.html"))
+		t, _ := template.ParseFiles(path.Join("templates", "index.html"))
 		t.Execute(w, "")
 	default:
 		log.Println("ERROR: Invalid HTTP Method")
@@ -120,6 +118,7 @@ func (ws *WalletServer) CreateTransaction(w http.ResponseWriter, req *http.Reque
 }
 
 func (ws *WalletServer) Run() {
+
 	http.HandleFunc("/", ws.Index)
 	http.HandleFunc("/wallet", ws.Wallet)
 	http.HandleFunc("/transaction", ws.CreateTransaction)
