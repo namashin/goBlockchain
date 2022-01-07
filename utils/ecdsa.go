@@ -25,7 +25,7 @@ func String2BigIntTuple(s string) (big.Int, big.Int) {
 	var biy big.Int
 
 	_ = bix.SetBytes(bx)
-	_ = bix.SetBytes(by)
+	_ = biy.SetBytes(by)
 
 	return bix, biy
 }
@@ -41,8 +41,8 @@ func PublicKeyFromString(s string) *ecdsa.PublicKey {
 }
 
 func PrivateKeyFromString(s string, publicKey *ecdsa.PublicKey) *ecdsa.PrivateKey {
-	b, _ := hex.DecodeString(s)
-	var b1 big.Int
-	_ = b1.SetBytes(b)
-	return &ecdsa.PrivateKey{*publicKey, &b1}
+	b, _ := hex.DecodeString(s[:])
+	var bi big.Int
+	_ = bi.SetBytes(b)
+	return &ecdsa.PrivateKey{*publicKey, &bi}
 }
